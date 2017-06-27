@@ -2,6 +2,8 @@
 
 Google Chrome allows native applications to interface with browser plugins as described in their[documentation](https://developer.chrome.com/extensions/nativeMessaging). This Rust crate provides simple functions for encoding/decoding JSON messages and handling errors during this process.
 
+[**Documentation**](https://docs.rs/chrome-native-messaging)
+
 ## Contributing
 
 - It would be great to integrate this with Tokio in order to make a fully asyncronous event loop. I haven't needed it personally so far, therefore it hasn't been worth my time to implement it.
