@@ -1,0 +1,10 @@
+[package]
+authors = ["Chris Chamberlain <c.chamberlain@iinet.net.au>"]
+name = "chrome_native_messaging"
+version = "0.1.0"
+repository = "https://github.com/neon64/chrome-native-messaging"
+
+[dependencies]
+byteorder = "1.0.0"
+error-chain = "0.10.0"
+serde_json = "1.0.2"
