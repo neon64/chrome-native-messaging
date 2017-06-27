@@ -3,7 +3,7 @@ authors = ["Chris Chamberlain <c.chamberlain@iinet.net.au>"]
 name = "chrome_native_messaging"
 keywords = ["chrome", "native", "messaging", "host", "protocol"]
 description = "Implementation of Chrome's Native Messaging protocol"
-version = "0.1.0"
+version = "0.1.1"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/neon64/chrome-native-messaging"
 

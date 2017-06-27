@@ -9,6 +9,7 @@ extern crate error_chain;
 extern crate serde_json;
 extern crate byteorder;
 
+/// Error handling is assisted by the `error_chain` crate
 pub mod errors;
 
 use std::io;
@@ -22,6 +23,17 @@ use errors::*;
 
 /// Writes the given JSON data to stdout, thereby 'sending' a message
 /// back to Chrome. 
+///
+/// # Example
+/// 
+/// ```
+/// #[macro_use]
+/// extern crate chrome_native_messaging;
+///
+/// fn main() {
+///     send!({ "msg": "Hello, world!" });
+/// }
+/// ```
 #[macro_export]
 macro_rules! send {
     ($($json:tt)+) => {
@@ -57,6 +69,20 @@ pub fn read_input<R: Read>(mut input: R) -> Result<Value> {
 /// Writes an output from a stream, encoded according to
 /// Chrome's documentation on native messaging.
 /// (https://developer.chrome.com/extensions/nativeMessaging)
+///
+/// # Example
+/// 
+/// ```
+/// #[macro_use]
+/// extern crate chrome_native_messaging;
+/// use std::io;
+/// 
+/// fn main() {
+///     let v = json!({ "msg": "Some other message" });
+///     chrome_native_messaging::write_output(io::stdout(), &v)
+///         .expect("failed to write to stdout");
+/// }
+/// ```
 pub fn write_output<W: Write>(mut output: W, value: &Value) -> Result<()> {
     let msg = serde_json::to_string(value)?;
     let len = msg.len();
