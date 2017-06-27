@@ -9,7 +9,7 @@ extern crate error_chain;
 extern crate serde_json;
 extern crate byteorder;
 
-mod errors;
+pub mod errors;
 
 use std::io;
 use std::io::{Read, Write};
