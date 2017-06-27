@@ -1,6 +1,6 @@
 # Chrome Native Messaging in Rust
 
-Google Chrome allows native applications to interface with browser plugins as described in their[documentation](https://developer.chrome.com/extensions/nativeMessaging). This Rust crate provides simple functions for encoding/decoding JSON messages and handling errors during this process.
+Google Chrome allows native applications to interface with browser plugins as described in their [documentation](https://developer.chrome.com/extensions/nativeMessaging). This Rust crate provides simple functions for encoding/decoding JSON messages and handling errors during this process.
 
 [**Documentation**](https://docs.rs/chrome-native-messaging)
 
