@@ -7,5 +7,5 @@ Google Chrome allows native applications to interface with browser plugins as de
 ## Contributing
 
 - It would be great to integrate this with Tokio in order to make a fully asyncronous event loop. I haven't needed it personally so far, therefore it hasn't been worth my time to implement it.
-- Currently there are *0 tests*. Yes, I know, that is a horrible abomination against the TDD gods. However its a really simple library, and I haven't thought of a good way to actually ensure that the communication protocol is implemented correctly, short of actually using it with a Chrome plugin.
+- Currently there are no integration tests with Chrome itself, to make sure that the protocol is implemented correctly. I wasn't sure how to achieve this easily, but if anybody has a suggestion then it would be welcomed.
 - All contributions/suggestions welcome!!

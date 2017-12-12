@@ -1,7 +1,6 @@
 use std::io;
 use serde_json;
 
-
 // Create the Error, ErrorKind, ResultExt, and Result types
 error_chain! {
 
