@@ -1,12 +1,6 @@
-extern crate serde;
-#[macro_use]
-extern crate serde_json;
-#[macro_use]
-extern crate serde_derive;
-extern crate chrome_native_messaging;
-
-use chrome_native_messaging::write_output;
-use chrome_native_messaging::errors::ErrorKind;
+use serde::Serialize;
+use serde_json::json;
+use chrome_native_messaging::{write_output, Error};
 use std::io::sink;
 
 #[derive(Serialize)]
@@ -44,8 +38,8 @@ fn test_payload_length() {
         "big_list": list
     });
 
-    match *write_output(sink(), &too_large_res).err().expect("expected error").kind() {
-        ErrorKind::MessageTooLarge(_) => {},
+    match write_output(sink(), &too_large_res).err().expect("expected error") {
+        Error::MessageTooLarge { size: _ } => {},
         _ => panic!("expected `MessageTooLarge` error")
     }
 }

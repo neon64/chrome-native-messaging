@@ -1,24 +1,16 @@
 use std::io;
-use serde_json;
+use thiserror::Error;
 
-// Create the Error, ErrorKind, ResultExt, and Result types
-error_chain! {
-
-    foreign_links {
-        Io(io::Error);
-        Serde(serde_json::Error);
-    }
-
-    errors {
-        /// Chrome restricts message sizes to a maximum of 1MB
-        MessageTooLarge(size: usize) {
-            description("message too large")
-            display("message too large: {} bytes", size)
-        }
-        NoMoreInput {
-            description("EOF received")
-            display("the input stream reached the end")
-        }
-    }
-
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error("io error")]
+    Io(#[from] io::Error),
+    #[error("serde error")]
+    Serde(#[from] serde_json::Error),
+    #[error("message too large: {size:?} bytes")]
+    MessageTooLarge {
+        size: usize
+    },
+    #[error("the input stream reached the end")]
+    NoMoreInput
 }
