@@ -1,5 +1,5 @@
 [package]
-authors = ["Chris Chamberlain <c.chamberlain@iinet.net.au>"]
+authors = ["Chris Chamberlain <chris@chamberlain.id.au>"]
 name = "chrome_native_messaging"
 keywords = ["chrome", "native", "messaging", "host", "protocol"]
 description = "Implementation of Chrome's Native Messaging protocol"
