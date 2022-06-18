@@ -1,13 +1,13 @@
 mod errors;
 
+pub use crate::errors::Error;
+use byteorder::{NativeEndian, ReadBytesExt, WriteBytesExt};
+use serde::Serialize;
+use serde_json::{json, Value};
+use std::fmt::Display;
 use std::io;
 use std::io::{Read, Write};
 use std::panic;
-use serde::Serialize;
-use serde_json::{json, Value};
-use byteorder::{NativeEndian, ReadBytesExt, WriteBytesExt};
-pub use crate::errors::Error;
-use std::fmt::Display;
 
 /// Writes the given JSON data to stdout, thereby 'sending' a message
 /// back to Chrome. *If you are on stable, then you also need to import macros
@@ -54,12 +54,10 @@ pub fn read_input<R: Read>(mut input: R) -> Result<Value, Error> {
             let value = serde_json::from_slice(&buffer)?;
             Ok(value)
         }
-        Err(e) => {
-            match e.kind() {
-                io::ErrorKind::UnexpectedEof => Err(Error::NoMoreInput),
-                _ => Err(e.into()),
-            }
-        }
+        Err(e) => match e.kind() {
+            io::ErrorKind::UnexpectedEof => Err(Error::NoMoreInput),
+            _ => Err(e.into()),
+        },
     }
 }
 
@@ -133,7 +131,7 @@ fn handle_panic(info: &std::panic::PanicInfo) {
         None => match info.payload().downcast_ref::<String>() {
             Some(s) => &s[..],
             None => "Box<Any>",
-        }
+        },
     };
     send!({
         "status": "panic",
@@ -169,31 +167,26 @@ fn handle_panic(info: &std::panic::PanicInfo) {
 ///
 /// ```
 pub fn event_loop<T, E, F>(callback: F)
-    where F: Fn(serde_json::Value) -> Result<T, E>,
-          T: Serialize,
-          E: Display
+where
+    F: Fn(serde_json::Value) -> Result<T, E>,
+    T: Serialize,
+    E: Display,
 {
     panic::set_hook(Box::new(handle_panic));
 
     loop {
         // wait for input
         match read_input(io::stdin()) {
-            Ok(v) => {
-                match callback(v) {
-                    Ok(response) => send_message(io::stdout(), &response).unwrap(),
-                    Err(e) => send!({
-                        "error": format!("{}", e)
-                    })
-                }
-            }
+            Ok(v) => match callback(v) {
+                Ok(response) => send_message(io::stdout(), &response).unwrap(),
+                Err(e) => send!({ "error": format!("{}", e) }),
+            },
             Err(e) => {
                 // if the input stream has finished, then we exit the event loop
                 if let Error::NoMoreInput = e {
                     break;
                 }
-                send!({
-                    "error": format!("{}", e)
-                });
+                send!({ "error": format!("{}", e) });
             }
         }
     }
