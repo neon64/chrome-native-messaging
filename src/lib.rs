@@ -24,7 +24,7 @@ use std::fmt::Display;
 macro_rules! send {
     ($($json:tt)+) => {{
         let v = json!($($json),+);
-        $crate::send_message(::std::io::stdout(), &v).unwrap();
+        $crate::send_message(::std::io::stdout(), &v)
     }}
 }
 
@@ -109,7 +109,8 @@ fn handle_panic(info: &std::panic::PanicInfo) {
             None => "Box<Any>",
         }
     };
-    send!({
+    // Ignore error if send fails, we don't want to panic inside the panic handler
+    let _ = send!({
         "status": "panic",
         "payload": msg,
         "file": info.location().map(|l| l.file()),
@@ -157,7 +158,7 @@ pub fn event_loop<T, E, F>(callback: F)
                     Ok(response) => send_message(io::stdout(), &response).unwrap(),
                     Err(e) => send!({
                         "error": format!("{}", e)
-                    })
+                    }).unwrap()
                 }
             }
             Err(e) => {
@@ -167,7 +168,7 @@ pub fn event_loop<T, E, F>(callback: F)
                 }
                 send!({
                     "error": format!("{}", e)
-                });
+                }).unwrap();
             }
         }
     }
