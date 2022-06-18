@@ -129,7 +129,7 @@ fn handle_panic(info: &std::panic::PanicInfo) {
 /// use chrome_native_messaging::event_loop;
 /// use std::io;
 /// use serde::Serialize;
-/// use serde_json::json;
+/// use serde_json::{json, Value};
 ///
 /// #[derive(Serialize)]
 /// struct BasicMessage<'a> {
@@ -137,7 +137,7 @@ fn handle_panic(info: &std::panic::PanicInfo) {
 /// }
 ///
 /// event_loop(|value| match value {
-///     Null => Err("null payload"),
+///     Value::Null => Err("null payload"),
 ///     _ => Ok(BasicMessage { payload: "Hello, World!" })
 /// });
 ///
