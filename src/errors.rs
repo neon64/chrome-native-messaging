@@ -1,16 +1,42 @@
-use std::io;
-use thiserror::Error;
+use std::{fmt, io};
 
-#[derive(Error, Debug)]
+#[derive(Debug)]
 pub enum Error {
-    #[error("io error")]
-    Io(#[from] io::Error),
-    #[error("serde error")]
-    Serde(#[from] serde_json::Error),
-    #[error("message too large: {size:?} bytes")]
-    MessageTooLarge {
-        size: usize
-    },
-    #[error("the input stream reached the end")]
-    NoMoreInput
+    Io(io::Error),
+    Serde(serde_json::Error),
+    MessageTooLarge { size: usize },
+    NoMoreInput,
 }
+
+impl From<serde_json::Error> for Error {
+    fn from(err: serde_json::Error) -> Self {
+        Error::Serde(err)
+    }
+}
+
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Self {
+        Error::Io(err)
+    }
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Error::Io(err) => {
+                f.write_str("io error: ")?;
+                err.fmt(f)
+            }
+            Error::Serde(err) => {
+                f.write_str("serde error: ")?;
+                err.fmt(f)
+            }
+            Error::MessageTooLarge { size } => {
+                f.write_fmt(format_args!("message too large: {:?} bytes", size))
+            }
+            Error::NoMoreInput => f.write_str("the input stream reached the end"),
+        }
+    }
+}
+
+impl std::error::Error for Error {}
