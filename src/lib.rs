@@ -4,6 +4,7 @@ pub use crate::errors::Error;
 use byteorder::{NativeEndian, ReadBytesExt, WriteBytesExt};
 use serde::Serialize;
 use serde_json::{json, Value};
+pub use crate::errors::Error;
 use std::fmt::Display;
 use std::io;
 use std::io::{Read, Write};
@@ -25,7 +26,7 @@ use std::panic;
 macro_rules! send {
     ($($json:tt)+) => {{
         let v = json!($($json),+);
-        $crate::write_output(::std::io::stdout(), &v).unwrap();
+        $crate::send_message(::std::io::stdout(), &v)
     }}
 }
 
@@ -46,7 +47,8 @@ macro_rules! send {
 ///     .err().expect("doctest should return unexpected eof");
 ///
 pub fn read_input<R: Read>(mut input: R) -> Result<Value, Error> {
-    match input.read_u32::<NativeEndian>() {
+    let mut buf = [0; 4];
+    match input.read_exact(&mut buf).map(|()| u32::from_ne_bytes(buf)) {
         Ok(length) => {
             //println!("Found length: {}", length);
             let mut buffer = vec![0; length as usize];
@@ -59,34 +61,6 @@ pub fn read_input<R: Read>(mut input: R) -> Result<Value, Error> {
             _ => Err(e.into()),
         },
     }
-}
-
-/// Writes an output to a stream, encoded according to
-/// Chrome's documentation on native messaging.
-/// (https://developer.chrome.com/extensions/nativeMessaging)
-///
-/// # Example
-///
-/// ```
-/// use chrome_native_messaging::write_output;
-/// use std::io;
-/// use serde_json::json;
-///
-/// let v = json!({ "msg": "Some other message" });
-/// write_output(io::stdout(), &v)
-///     .expect("failed to write to stdout");
-/// ```
-pub fn write_output<W: Write>(mut output: W, value: &Value) -> Result<(), Error> {
-    let msg = serde_json::to_string(value)?;
-    let len = msg.len();
-    // Chrome won't accept a message larger than 1MB
-    if len > 1024 * 1024 {
-        return Err(Error::MessageTooLarge { size: len });
-    }
-    output.write_u32::<NativeEndian>(len as u32)?;
-    output.write_all(msg.as_bytes())?;
-    output.flush()?;
-    Ok(())
 }
 
 /// Writes an output to a stream, encoded according to
@@ -117,7 +91,9 @@ pub fn send_message<W: Write, T: Serialize>(mut output: W, value: &T) -> Result<
     if len > 1024 * 1024 {
         return Err(Error::MessageTooLarge { size: len });
     }
-    output.write_u32::<NativeEndian>(len as u32)?;
+    let len = len as u32; // Cast is safe due to size check above
+    let len_bytes = len.to_ne_bytes();
+    output.write_all(&len_bytes)?;
     output.write_all(msg.as_bytes())?;
     output.flush()?;
     Ok(())
@@ -133,7 +109,8 @@ fn handle_panic(info: &std::panic::PanicInfo) {
             None => "Box<Any>",
         },
     };
-    send!({
+    // Ignore error if send fails, we don't want to panic inside the panic handler
+    let _ = send!({
         "status": "panic",
         "payload": msg,
         "file": info.location().map(|l| l.file()),
@@ -153,7 +130,7 @@ fn handle_panic(info: &std::panic::PanicInfo) {
 /// use chrome_native_messaging::event_loop;
 /// use std::io;
 /// use serde::Serialize;
-/// use serde_json::json;
+/// use serde_json::{json, Value};
 ///
 /// #[derive(Serialize)]
 /// struct BasicMessage<'a> {
@@ -161,7 +138,7 @@ fn handle_panic(info: &std::panic::PanicInfo) {
 /// }
 ///
 /// event_loop(|value| match value {
-///     Null => Err("null payload"),
+///     Value::Null => Err("null payload"),
 ///     _ => Ok(BasicMessage { payload: "Hello, World!" })
 /// });
 ///
@@ -177,16 +154,22 @@ where
     loop {
         // wait for input
         match read_input(io::stdin()) {
-            Ok(v) => match callback(v) {
-                Ok(response) => send_message(io::stdout(), &response).unwrap(),
-                Err(e) => send!({ "error": format!("{}", e) }),
-            },
+            Ok(v) => {
+                match callback(v) {
+                    Ok(response) => send_message(io::stdout(), &response).unwrap(),
+                    Err(e) => send!({
+                        "error": format!("{}", e)
+                    }).unwrap()
+                }
+            }
             Err(e) => {
                 // if the input stream has finished, then we exit the event loop
                 if let Error::NoMoreInput = e {
                     break;
                 }
-                send!({ "error": format!("{}", e) });
+                send!({
+                    "error": format!("{}", e)
+                }).unwrap();
             }
         }
     }
