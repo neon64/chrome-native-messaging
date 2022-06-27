@@ -31,9 +31,7 @@ fn test_payload_length() {
     let list = " ".repeat(1024 * 1024 + 20);
     let too_large_res = json!({ "big_list": list });
 
-    match send_message(sink(), &too_large_res)
-        .expect_err("expected error")
-    {
+    match send_message(sink(), &too_large_res).expect_err("expected error") {
         Error::MessageTooLarge { size: _ } => {}
         _ => panic!("expected `MessageTooLarge` error"),
     }
