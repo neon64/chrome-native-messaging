@@ -152,22 +152,16 @@ where
     loop {
         // wait for input
         match read_input(io::stdin()) {
-            Ok(v) => {
-                match callback(v) {
-                    Ok(response) => send_message(io::stdout(), &response).unwrap(),
-                    Err(e) => send!({
-                        "error": format!("{}", e)
-                    }).unwrap()
-                }
-            }
+            Ok(v) => match callback(v) {
+                Ok(response) => send_message(io::stdout(), &response).unwrap(),
+                Err(e) => send!({ "error": format!("{}", e) }).unwrap(),
+            },
             Err(e) => {
                 // if the input stream has finished, then we exit the event loop
                 if let Error::NoMoreInput = e {
                     break;
                 }
-                send!({
-                    "error": format!("{}", e)
-                }).unwrap();
+                send!({ "error": format!("{}", e) }).unwrap();
             }
         }
     }

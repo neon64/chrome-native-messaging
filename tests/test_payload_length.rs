@@ -1,6 +1,6 @@
+use chrome_native_messaging::{send_message, Error};
 use serde::Serialize;
 use serde_json::json;
-use chrome_native_messaging::{send_message, Error};
 use std::io::sink;
 
 #[derive(Serialize)]
@@ -31,8 +31,11 @@ fn test_payload_length() {
     let list = " ".repeat(1024 * 1024 + 20);
     let too_large_res = json!({ "big_list": list });
 
-    match send_message(sink(), &too_large_res).err().expect("expected error") {
-        Error::MessageTooLarge { size: _ } => {},
-        _ => panic!("expected `MessageTooLarge` error")
+    match send_message(sink(), &too_large_res)
+        .err()
+        .expect("expected error")
+    {
+        Error::MessageTooLarge { size: _ } => {}
+        _ => panic!("expected `MessageTooLarge` error"),
     }
 }
