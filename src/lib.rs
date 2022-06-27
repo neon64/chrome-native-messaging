@@ -1,10 +1,8 @@
 mod errors;
 
 pub use crate::errors::Error;
-use byteorder::{NativeEndian, ReadBytesExt, WriteBytesExt};
 use serde::Serialize;
 use serde_json::{json, Value};
-pub use crate::errors::Error;
 use std::fmt::Display;
 use std::io;
 use std::io::{Read, Write};

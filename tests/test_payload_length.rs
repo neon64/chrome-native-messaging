@@ -1,4 +1,3 @@
-use chrome_native_messaging::{write_output, Error};
 use serde::Serialize;
 use serde_json::json;
 use chrome_native_messaging::{send_message, Error};
